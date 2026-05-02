@@ -8,6 +8,8 @@ A production-ready notification system built with Laravel that supports multiple
 
 ## 🚀 Quick Links
 
+- **[Swagger UI (Interactive) →](http://localhost:8000/swagger.html)** - Try API endpoints live
+- **[OpenAPI Documentation →](OPENAPI.md)** - Complete OpenAPI/Swagger guide
 - **[5-Minute Quickstart →](QUICKSTART.md)** - Get running in minutes
 - **[Complete Project Status →](PROJECT_STATUS.md)** - Live metrics, test results, verification
 - **[API Documentation →](API.md)** - All endpoints with examples
@@ -128,7 +130,25 @@ php artisan serve
 
 ## 📚 API Documentation
 
-Full API documentation available in [API.md](API.md)
+### Interactive API Explorer (Swagger UI)
+
+Access the interactive API documentation with request/response examples:
+
+**Local:** http://localhost:8000/swagger.html  
+**Files:** 
+- [openapi.yaml](openapi.yaml) - YAML specification (recommended for readability)
+- [openapi.json](openapi.json) - JSON specification (for tools & integrations)
+
+The Swagger UI includes:
+- ✨ Interactive endpoint explorer
+- 📝 Request/response examples
+- 🔍 Parameter documentation
+- 📊 Schema definitions
+- 🧪 Try-it-out functionality
+
+### Complete Documentation
+
+Full API documentation with code examples available in [API.md](API.md)
 
 ### Quick API Reference
 

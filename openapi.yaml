@@ -1,0 +1,488 @@
+openapi: 3.0.0
+info:
+  title: Notification System API
+  description: |
+    A production-ready notification system with asynchronous queue processing.
+    Supports multiple notification channels (database, email, SMS, push) with Redis/RabbitMQ integration.
+  version: 1.0.0
+  contact:
+    name: API Support
+    url: https://github.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Local Development
+  - url: https://api.example.com/api/v1
+    description: Production
+
+tags:
+  - name: Notifications
+    description: Create and manage notifications
+  - name: Monitoring
+    description: Monitor notification system status
+
+paths:
+  /notifications:
+    post:
+      tags:
+        - Notifications
+      summary: Create a new notification
+      description: |
+        Publish a new notification to the queue.
+        The notification will be stored in the database with 'pending' status,
+        then dispatched to the queue for asynchronous processing.
+      operationId: createNotification
+      requestBody:
+        required: true
+        description: Notification payload
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateNotificationRequest'
+            examples:
+              basic:
+                summary: Basic notification
+                value:
+                  user_id: user-123
+                  type: alert
+                  message: This is a test notification
+                  channel: database
+              email:
+                summary: Email notification
+                value:
+                  user_id: user-456
+                  type: welcome
+                  message: Welcome to our service!
+                  channel: email
+      responses:
+        '201':
+          description: Notification created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationResponse'
+              examples:
+                success:
+                  summary: Successful creation
+                  value:
+                    data:
+                      id: 1
+                      user_id: user-123
+                      type: alert
+                      channel: database
+                      message: This is a test notification
+                      status: pending
+                      status_label: Pending
+                      attempts: null
+                      error_message: null
+                      processed_at: null
+                      created_at: '2026-05-02T07:21:11Z'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+              examples:
+                missing_fields:
+                  summary: Missing required fields
+                  value:
+                    message: The given data was invalid.
+                    errors:
+                      user_id:
+                        - The user_id field is required.
+                      message:
+                        - The message field is required.
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitError'
+              examples:
+                rate_limit:
+                  summary: Rate limit exceeded
+                  value:
+                    message: Rate limit exceeded. Maximum 10 notifications per user per hour.
+                    retry_after: 3580
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServerError'
+
+    get:
+      tags:
+        - Notifications
+      summary: Get recent notifications
+      description: |
+        Retrieve a paginated list of notifications with optional filtering.
+        Results are sorted by creation date (newest first).
+      operationId: getNotifications
+      parameters:
+        - name: status
+          in: query
+          description: Filter by notification status
+          schema:
+            type: string
+            enum:
+              - pending
+              - processed
+              - failed
+        - name: user_id
+          in: query
+          description: Filter by user ID
+          schema:
+            type: string
+            maxLength: 255
+        - name: channel
+          in: query
+          description: Filter by notification channel
+          schema:
+            type: string
+            enum:
+              - database
+              - email
+              - sms
+              - push
+        - name: from_date
+          in: query
+          description: Filter from date (YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+        - name: to_date
+          in: query
+          description: Filter to date (YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+        - name: per_page
+          in: query
+          description: Results per page (default 15, max 100)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 15
+        - name: page
+          in: query
+          description: Page number (default 1)
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+      responses:
+        '200':
+          description: List of notifications retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedNotificationResponse'
+              examples:
+                success:
+                  summary: Successful retrieval
+                  value:
+                    data:
+                      - id: 1
+                        user_id: user-123
+                        type: alert
+                        channel: database
+                        message: Test notification
+                        status: processed
+                        status_label: Processed
+                        attempts: 1
+                        error_message: null
+                        processed_at: '2026-05-02T07:21:15Z'
+                        created_at: '2026-05-02T07:21:11Z'
+                      - id: 2
+                        user_id: user-456
+                        type: reminder
+                        channel: email
+                        message: Remember to update profile
+                        status: pending
+                        status_label: Pending
+                        attempts: null
+                        error_message: null
+                        processed_at: null
+                        created_at: '2026-05-02T07:22:00Z'
+                    links:
+                      first: 'http://localhost:8000/api/v1/notifications?page=1'
+                      last: 'http://localhost:8000/api/v1/notifications?page=5'
+                      prev: null
+                      next: 'http://localhost:8000/api/v1/notifications?page=2'
+                    meta:
+                      current_page: 1
+                      from: 1
+                      last_page: 5
+                      path: 'http://localhost:8000/api/v1/notifications'
+                      per_page: 15
+                      to: 15
+                      total: 75
+
+  /notifications/summary:
+    get:
+      tags:
+        - Monitoring
+      summary: Get notification summary
+      description: |
+        Retrieve a summary of notification statistics.
+        Results are cached for 5 minutes for performance optimization.
+      operationId: getSummary
+      parameters:
+        - name: user_id
+          in: query
+          description: Optional user ID to filter summary for specific user
+          schema:
+            type: string
+            maxLength: 255
+      responses:
+        '200':
+          description: Notification summary retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SummaryResponse'
+              examples:
+                global:
+                  summary: Global summary
+                  value:
+                    data:
+                      total: 150
+                      processed: 140
+                      failed: 5
+                      pending: 5
+                    cached: true
+                user_specific:
+                  summary: User-specific summary
+                  value:
+                    data:
+                      total: 15
+                      processed: 12
+                      failed: 1
+                      pending: 2
+                    cached: true
+
+components:
+  schemas:
+    CreateNotificationRequest:
+      type: object
+      required:
+        - user_id
+        - type
+        - message
+      properties:
+        user_id:
+          type: string
+          maxLength: 255
+          description: Unique user identifier
+          example: user-123
+        type:
+          type: string
+          maxLength: 100
+          description: Notification type
+          example: alert
+        message:
+          type: string
+          maxLength: 1000
+          description: Notification message content
+          example: Your notification message here
+        channel:
+          type: string
+          enum:
+            - database
+            - email
+            - sms
+            - push
+          default: database
+          description: Channel to send notification via
+          example: database
+
+    Notification:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Notification ID
+          example: 1
+        user_id:
+          type: string
+          description: User ID
+          example: user-123
+        type:
+          type: string
+          description: Notification type
+          example: alert
+        channel:
+          type: string
+          enum:
+            - database
+            - email
+            - sms
+            - push
+          description: Channel
+          example: database
+        message:
+          type: string
+          description: Notification message
+          example: Your notification message here
+        status:
+          type: string
+          enum:
+            - pending
+            - processed
+            - failed
+          description: Current status
+          example: pending
+        status_label:
+          type: string
+          description: Human-readable status label
+          example: Pending
+        attempts:
+          type: integer
+          nullable: true
+          description: Number of processing attempts
+          example: null
+        error_message:
+          type: string
+          nullable: true
+          description: Error message if failed
+          example: null
+        processed_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: Timestamp when processed
+          example: null
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+          example: '2026-05-02T07:21:11Z'
+
+    NotificationResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/Notification'
+
+    PaginatedNotificationResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Notification'
+        links:
+          type: object
+          properties:
+            first:
+              type: string
+              description: Link to first page
+            last:
+              type: string
+              description: Link to last page
+            prev:
+              type: string
+              nullable: true
+              description: Link to previous page
+            next:
+              type: string
+              nullable: true
+              description: Link to next page
+        meta:
+          type: object
+          properties:
+            current_page:
+              type: integer
+            from:
+              type: integer
+            last_page:
+              type: integer
+            path:
+              type: string
+            per_page:
+              type: integer
+            to:
+              type: integer
+            total:
+              type: integer
+
+    SummaryResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            total:
+              type: integer
+              description: Total notifications
+              example: 150
+            processed:
+              type: integer
+              description: Successfully processed notifications
+              example: 140
+            failed:
+              type: integer
+              description: Failed notifications
+              example: 5
+            pending:
+              type: integer
+              description: Pending notifications
+              example: 5
+        cached:
+          type: boolean
+          description: Whether result is from cache
+          example: true
+
+    ValidationError:
+      type: object
+      properties:
+        message:
+          type: string
+          example: The given data was invalid.
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+
+    RateLimitError:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Rate limit exceeded. Maximum 10 notifications per user per hour.
+        retry_after:
+          type: integer
+          description: Seconds until rate limit resets
+          example: 3580
+
+    ServerError:
+      type: object
+      properties:
+        message:
+          type: string
+          example: An unexpected error occurred.
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: Optional API key for authentication (future enhancement)
+
+security: []
+
+x-logo:
+  url: 'https://laravel.com/img/logomark.min.svg'
+  altText: Laravel
+
+externalDocs:
+  description: Complete documentation
+  url: 'https://github.com/yourusername/notification-system'
