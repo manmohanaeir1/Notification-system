@@ -14,6 +14,7 @@ class NotificationService
 {
     public function __construct(
         private readonly NotificationRepositoryInterface $repository,
+        private readonly EventSourcingService $eventSourcing,
     ) {}
 
     public function send(NotificationDTO $dto): Notification
@@ -27,6 +28,12 @@ class NotificationService
         }
 
         $notification = $this->repository->create($dto);
+
+        // Record creation event
+        $this->eventSourcing->recordCreated($notification, [
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+        ]);
 
         SendNotificationJob::dispatch($notification);
 
