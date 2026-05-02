@@ -77,18 +77,4 @@ class SendNotificationJob implements ShouldQueue
         );
     }
 
-    public function release(int $delay = 0): void
-    {
-        $eventSourcing = app(EventSourcingService::class);
-
-        // Record retry event
-        $eventSourcing->recordRetry(
-            $this->notification,
-            $this->notification->attempts ?? 0,
-            $delay,
-            ['reason' => 'Queue retry scheduled']
-        );
-
-        parent::release($delay);
-    }
 }

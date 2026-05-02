@@ -227,7 +227,8 @@ class AdminDashboardController
             ],
             'notifications_pending' => Notification::pending()->count(),
             'notifications_failed' => Notification::failed()->count(),
-            'recent_errors' => NotificationEvent::byType('failed')
+            'recent_errors' => NotificationEvent::where('event_type', 'failed')
+                ->latest('created_at')
                 ->limit(5)
                 ->get(['notification_id', 'event_data', 'created_at']),
         ];
@@ -300,8 +301,8 @@ class AdminDashboardController
     private function checkQueue(): bool
     {
         try {
-            $job = new \App\Jobs\SendNotificationJob(null);
-            // Can be queued = available
+            // Check if we can access the queue connection
+            \Illuminate\Support\Facades\Queue::size() !== null;
             return true;
         } catch (\Exception $e) {
             return false;
