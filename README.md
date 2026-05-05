@@ -6,16 +6,7 @@ A production-ready notification system built with Laravel that supports multiple
 
 ---
 
-## 🚀 Quick Links
-
-- **[Swagger UI (Interactive) →](http://localhost:8000/swagger.html)** - Try API endpoints live
-- **[OpenAPI Documentation →](OPENAPI.md)** - Complete OpenAPI/Swagger guide
-- **[5-Minute Quickstart →](QUICKSTART.md)** - Get running in minutes
-- **[Complete Project Status →](PROJECT_STATUS.md)** - Live metrics, test results, verification
-- **[API Documentation →](API.md)** - All endpoints with examples
-- **[Docker Setup →](DOCKER.md)** - Container configuration guide
-- **[Requirements Alignment →](ALIGNMENT_REPORT.md)** - Full requirements audit
-
+ 
 ---
 
 ## ✨ Features
@@ -42,8 +33,7 @@ A production-ready notification system built with Laravel that supports multiple
 - RabbitMQ 3.12+ (optional alternative to Redis)
 
 ### Project Dependencies
-See [composer.json](composer.json) for complete list
-
+ 
 ## 📊 Live Status
 
 **Last Verified:** May 2, 2026
@@ -56,8 +46,7 @@ See [composer.json](composer.json) for complete list
 | Requirements Met | **10/10** ✅ |
 | All Services | **Running** ✅ |
 
-See [PROJECT_STATUS.md](PROJECT_STATUS.md) for detailed metrics.
-
+ 
 ---
 
 ## 🏃 Quick Start
