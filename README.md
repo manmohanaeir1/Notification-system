@@ -5,9 +5,7 @@ A production-ready notification system built with Laravel that supports multiple
 **Status:** ✅ **PRODUCTION READY** | **All 10 requirements met** | **12/12 tests passing**
 
 ---
-
  
----
 
 ## ✨ Features
 
@@ -606,8 +604,7 @@ xdg-open coverage/index.html  # Linux
 
 ### Interactive API Explorer
 
-**Swagger UI:** http://localhost:8000/swagger.html
-
+ 
 The Swagger interface allows you to:
 - Explore all endpoints
 - View request/response schemas
@@ -1055,9 +1052,7 @@ public function failed(Throwable $exception): void {
 
 ## 📚 QUICK API REFERENCE
 
-### Interactive Swagger UI
-Access the interactive API documentation at: **http://localhost:8000/swagger.html**
-
+  
 See section **"📚 API DOCUMENTATION (Comprehensive)"** above for full endpoint details with examples.
 
 ## 🗂️ Project Structure
@@ -1191,8 +1186,7 @@ See section **"🚀 QUEUE CONFIGURATION"** for queue worker setup.
    docker-compose logs -f queue-worker
    ```
 
-See [DOCKER.md](DOCKER.md#production-deployment) for complete production deployment guide.
-
+ 
 ## 📈 Performance
 
 - **API Response Time:** < 100ms (mostly queue dispatch)
@@ -1275,18 +1269,7 @@ docker-compose exec mysql mysql -u notifications_user -p
 
 # Recreate migrations
 docker-compose exec app php artisan migrate:fresh
-```
-
-See [DOCKER.md](DOCKER.md#troubleshooting) for comprehensive troubleshooting guide.
-
-## 📖 Documentation
-
-- **[QUICKSTART.md](QUICKSTART.md)** - 5-minute setup guide (recommended for first-time users)
-- **[API.md](API.md)** - Complete API endpoint reference with curl examples
-- **[DOCKER.md](DOCKER.md)** - Docker setup, commands, and troubleshooting
-- **[PROJECT_STATUS.md](PROJECT_STATUS.md)** - Live metrics, test results, verification
-- **[ALIGNMENT_REPORT.md](ALIGNMENT_REPORT.md)** - Complete requirements audit (10/10 met)
-
+``` 
 ## 🔐 Security
 
 - **Input Validation:** All inputs validated server-side
