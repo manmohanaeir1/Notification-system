@@ -47,9 +47,10 @@ class NotificationRepository implements NotificationRepositoryInterface
         $this->forgetSummaryCache();
     }
 
-    public function incrementAttempts(int $id): void
+    public function incrementAttempts(int $id): int
     {
         Notification::where('id', $id)->increment('attempts');
+        return (int) Notification::find($id)?->attempts ?? 0;
     }
 
     public function getRecent(array $filters = []): LengthAwarePaginator

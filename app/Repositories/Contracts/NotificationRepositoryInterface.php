@@ -16,7 +16,7 @@ interface NotificationRepositoryInterface
 
     public function markAsFailed(int $id, string $errorMessage): void;
 
-    public function incrementAttempts(int $id): void;
+    public function incrementAttempts(int $id): int;
 
     public function getRecent(array $filters = []): LengthAwarePaginator;
 

@@ -47,7 +47,7 @@ class SendNotificationJob implements ShouldQueue
         // Record sent event
         $eventSourcing->recordSent($this->notification, $attempts, [
             'queue_name' => 'notifications',
-            'job_id' => $this->job->getJobId() ?? null,
+            'job_id' => $this->job?->getJobId(),
         ]);
     }
 
