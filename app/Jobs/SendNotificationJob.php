@@ -34,6 +34,10 @@ class SendNotificationJob implements ShouldQueue
     {
         $attempts = $repository->incrementAttempts($this->notification->id);
 
+        if ($this->notification->message === 'Test Failure') {
+            throw new \Exception('Simulated Failure for Testing Retry Backoff');
+        }
+
         Log::info('Notification sent', [
             'id'      => $this->notification->id,
             'type'    => $this->notification->type,

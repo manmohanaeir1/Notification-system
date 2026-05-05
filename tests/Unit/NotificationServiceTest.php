@@ -17,6 +17,7 @@ use Tests\TestCase;
 class NotificationServiceTest extends TestCase
 {
     private NotificationRepositoryInterface $repository;
+    private \App\Services\EventSourcingService $eventSourcing;
     private NotificationService $service;
 
     protected function setUp(): void
@@ -24,7 +25,9 @@ class NotificationServiceTest extends TestCase
         parent::setUp();
         Queue::fake();
         $this->repository = Mockery::mock(NotificationRepositoryInterface::class);
-        $this->service    = new NotificationService($this->repository);
+        $this->eventSourcing = Mockery::mock(\App\Services\EventSourcingService::class);
+        $this->eventSourcing->shouldIgnoreMissing();
+        $this->service    = new NotificationService($this->repository, $this->eventSourcing);
     }
 
     protected function tearDown(): void
